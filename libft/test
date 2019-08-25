@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+static int	get_size(int nb)
+{
+	unsigned int	i;
+
+	i = 0;
+	while (nb >= 10)
+	{
+		nb /= 10;
+		i++;
+	}
+	i++;
+	return (i);
+}
+
+static int	is_neg(int nb)
+{
+	if (nb < 0)
+		return (1);
+	else
+		return (0);
+}
+
+char		*ft_itoa(int num)
+{
+	char				*str;
+	unsigned int		nb;
+	unsigned int		i;
+	unsigned int 		size;
+
+	nb = num < 0 ? (unsigned int)(num * -1) : (unsigned int)num;
+	i = 0;
+	size = (unsigned int)get_size(nb);
+	str = (char*)malloc(sizeof(char) * (size + 1 + (unsigned int)is_neg(num)));
+	if (!str)
+		return (0);
+	if (num < 0 && (str[i] = '-'))
+		size++;
+	i = size - 1;
+	while (nb >= 10)
+	{
+		str[i--] = (char)(nb % 10 + 48);
+		nb /= 10;
+	}
+	str[i] = (char)(nb % 10 + 48);
+	str[size] = '\0';
+	return (str);
+}
+
+int main(void)
+{
+	printf("%s", ft_itoa(-2147483647));
+	//printf("%s", itoa(-2147483648));
+	return (0);
+}
