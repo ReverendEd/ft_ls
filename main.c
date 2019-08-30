@@ -6,7 +6,7 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 21:07:51 by ed                #+#    #+#             */
-/*   Updated: 2019/08/25 16:26:54 by ed               ###   ########.fr       */
+/*   Updated: 2019/08/28 16:41:35 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,17 +15,23 @@
 #include <stdlib.h>
 #include "ft_ls.h"
 #include "./libft/libft.h"
+#include "./ft_ls.c"
 
 int main(int argc, char **argv)
 {
+    // begin input parsing
     inputs *session_inputs = build_input_struct();
     int parse_input_status = parse_input(argc, argv, session_inputs);
     ft_putstr("parse_input: ");
     ft_putstr(ERROR_MESSAGES[parse_input_status]);
     ft_putstr("\n");
     print_inputs(session_inputs);
-    if (parse_input_status != 0)
+    if (parse_input_status != 0 || session_inputs->flag_error)
         return 0;
+    // end input parsing
+    
+    ft_ls(session_inputs, ".");
+    
 
     return 0;
 }
