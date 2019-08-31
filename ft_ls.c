@@ -6,7 +6,7 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 20:19:36 by ed                #+#    #+#             */
-/*   Updated: 2019/08/30 12:52:39 by ed               ###   ########.fr       */
+/*   Updated: 2019/08/31 13:22:32 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include <dirent.h>
 #include <sys/types.h>
+#include <time.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include "ft_ls.h"
@@ -45,14 +46,13 @@ void ft_ls(inputs *input, char *path)
 void print_file_list(filelist *files, inputs *input, char *path)
 {
 	filelist *final_format = files;
-	
+
 	if (input->filelist->filename)
 		final_format = only_selected_files(final_format, input);
 	else if (!input->flag_a)
 		final_format = remove_dots(final_format);
-
 	if (input->flag_t)
-		final_format = sort_by_time(files, path);
+		final_format = sort_by_time(final_format, path);
 	if (input->flag_r)
 		final_format = reverse_files(final_format);
 	while (final_format->next)
@@ -64,39 +64,47 @@ void print_file_list(filelist *files, inputs *input, char *path)
 
 filelist *sort_by_time(filelist *files, char *path)
 {
-	
+
 	filelist *result = build_file_list();
 	filelist *start = files;
 	struct stat info;
 	char *full_path;
 	bool sort_completed = false;
-	int biggest_time;
+	long long biggest_time = 0;
+	// int i = 5;
 	
 	while (files->next)
 	{
-		full_path = ft_strjoin(path, files->filename);
-		stat(full_path, &info);
-		files->time = info.st_mtimespec.tv_sec;
+		full_path = ft_strjoin(path, "/");
+		full_path = ft_strjoin(full_path, files->filename);
+		printf("%s\n", full_path);
+		lstat(full_path, &info);
+		printf("%ld\n", info.st_mtime);
+		files->time = info.st_mtime;
 		files = files->next;
 	}
 	files = start;
+	
 
-	while (sort_completed == false)
-	{
-		biggest_time = 0;
-		while (files->next)
-		{
-			if (files->time > biggest_time && files->filename != NULL)
-			{
-				biggest_time = files->time;
-				add_new_file(result, files->filename);
-				files->filename = NULL;
-			}
-			files = files->next;
-		}
-		if (check_complete_sort(start) == true)
-			sort_completed = true;
-	}
+	// while (sort_completed == false)
+	// {
+	// 	biggest_time = 0;
+	// 	while (files->next)
+	// 	{
+	// 		printf("haha      %s %lld\n", files->filename, biggest_time);
+	// 		if (files->time > biggest_time && files->filename)
+	// 			biggest_time = files->time;
+	// 		files = files->next;
+	// 	}
+	// 	files = start;
+	// 	while (files->time != biggest_time)
+	// 		files = files->next;
+	// 	add_new_file(result, files->filename);
+	// 	files->filename = NULL;
+	// 	files = start;
+	// 	if (check_complete_sort(files) == true)
+	// 		sort_completed = true;
+	// }
 	return result;
 }
 
@@ -104,6 +112,7 @@ bool check_complete_sort(filelist *files)
 {
 	while (files->next)
 	{
+		printf("%s\n", files->filename);
 		if (files->filename != NULL)
 			return false;
 		files = files->next;

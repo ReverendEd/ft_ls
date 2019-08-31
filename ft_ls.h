@@ -6,7 +6,7 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 20:19:35 by ed                #+#    #+#             */
-/*   Updated: 2019/08/30 12:50:32 by ed               ###   ########.fr       */
+/*   Updated: 2019/08/31 11:11:40 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ typedef int bool;
 typedef struct s_files
 {
 	char *filename;
-	int time;
+	long long time;
 	struct s_files *next;
 	struct s_files *previous;
 }				filelist;
