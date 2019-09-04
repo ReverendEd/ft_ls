@@ -6,7 +6,7 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 20:19:35 by ed                #+#    #+#             */
-/*   Updated: 2019/08/31 11:11:40 by ed               ###   ########.fr       */
+/*   Updated: 2019/09/03 13:48:32 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,5 +75,11 @@ filelist *only_selected_files(filelist *files, inputs *input);
 void print_file_list(filelist *files, inputs *input, char *path);
 filelist *sort_by_time(filelist *files, char *path);
 bool check_complete_sort(filelist *files);
+void print_flag_l(filelist *files, char *path);
+char *print_type(struct stat info);
+filelist *sort_alpha(filelist *files);
+bool is_alpha_sort_completed(filelist *files);
+char *normalize_string(char *string, int amount);
+char *process_date(char *date);
 
 #endif

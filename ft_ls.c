@@ -6,28 +6,28 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 20:19:36 by ed                #+#    #+#             */
-/*   Updated: 2019/08/31 13:45:29 by ed               ###   ########.fr       */
+/*   Updated: 2019/09/03 19:06:45 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-// backtracking to handle the recursive part
 
 #include <dirent.h>
 #include <sys/types.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/xattr.h>
+#include <pwd.h>
+#include <grp.h>
 #include <stdio.h>
 #include "ft_ls.h"
 
 void ft_ls(inputs *input, char *path)
 {
-	printf("\n\n%s\n", path);
 	filelist *files = build_file_list();
 	nested_dir *dir_list = build_dir_list();
 	struct dirent *dp;
 	DIR *dir = opendir(path); // Open the directory - dir contains a pointer to manage the dir
 	if (dir == NULL)
-		printf("this failed");
+		ft_putstr("this failed");
 	while ((dp = readdir(dir))) // if dp is null, there's no more content to read
 	{
 		if (dp->d_type == 4) // if the filetype is a directory
@@ -47,6 +47,7 @@ void print_file_list(filelist *files, inputs *input, char *path)
 {
 	filelist *final_format = files;
 
+	final_format = sort_alpha(final_format);
 	if (input->filelist->filename)
 		final_format = only_selected_files(final_format, input);
 	else if (!input->flag_a)
@@ -55,12 +56,110 @@ void print_file_list(filelist *files, inputs *input, char *path)
 		final_format = sort_by_time(final_format, path);
 	if (input->flag_r)
 		final_format = reverse_files(final_format);
-	// now code -l flag.
-	while (final_format->next)
+	if (input->flag_l)
+		print_flag_l(final_format, path);
+	else
 	{
-		printf("%s \n", final_format->filename);
-		final_format = final_format->next;
+		while (final_format->next)
+		{
+			ft_putstr(final_format->filename);
+			ft_putstr("\n");
+			final_format = final_format->next;
+		}
 	}
+}
+
+void print_flag_l(filelist *files, char *path)
+{
+	struct stat info;
+	char *full_path;
+	char *final_line;
+	int length = 0;
+	lstat(full_path, &info);
+	full_path = ft_strjoin(path, "/");
+	full_path = ft_strjoin(full_path, files->filename);
+	length += ft_strlen((getpwuid(info.st_uid))->pw_name);
+	length += ft_strlen((getgrgid(info.st_gid))->gr_name);
+
+	while (files->next)
+	{
+		full_path = ft_strjoin(path, "/");
+		full_path = ft_strjoin(full_path, files->filename);
+		lstat(full_path, &info);
+		final_line = ft_strjoin("", print_type(info));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IRUSR) ? "r" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IWUSR) ? "w" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IXUSR) ? "x" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IRGRP) ? "r" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IWGRP) ? "w" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IXGRP) ? "x" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IROTH) ? "r" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IWOTH) ? "w" : "-"));
+		final_line = ft_strjoin(final_line, ((info.st_mode & S_IXOTH) ? "x" : "-"));
+		final_line = normalize_string(final_line, 12);
+		final_line = ft_strjoin(final_line, ft_itoa(info.st_nlink));
+		final_line = normalize_string(final_line, 16);
+		final_line = ft_strjoin(final_line, (getpwuid(info.st_uid))->pw_name);
+		final_line = normalize_string(final_line, 11 + length);
+		final_line = ft_strjoin(final_line, (getgrgid(info.st_gid)->gr_name));
+		final_line = normalize_string(final_line, 18 + length);
+		final_line = ft_strjoin(final_line, ft_itoa(info.st_size));
+		final_line = normalize_string(final_line, 24 + length);
+		final_line = ft_strjoin(final_line, process_date(ctime(&info.st_mtime)));
+		final_line = normalize_string(final_line, 39 + length);
+		final_line = ft_strjoin(final_line, files->filename);
+		final_line = ft_strjoin(final_line, "\n");
+		ft_putstr(final_line);
+		files = files->next;
+	}
+}
+
+char *process_date(char *date)
+{
+	int i = 0;
+	int j = ft_strlen(date) - 1;
+	char *result;
+
+	while (date[i] != ' ')
+		i++;
+	while (date[j] != ':')
+		j--;
+	result = ft_strsub(date, i, j - i);
+	return result;
+}
+
+char *normalize_string(char *string, int amount)
+{
+	int i = 0;
+
+	while (i < amount && string[i])
+		i++;
+	while (string[i] && string[i] != ' ')
+		i++;
+	while (i < amount)
+	{
+		string = ft_strjoin(string, " ");
+		i++;
+	}
+	return string;
+}
+
+char *print_type(struct stat info)
+{
+	if (S_ISBLK(info.st_mode))
+		return ("b");
+	else if (S_ISCHR(info.st_mode))
+		return ("c");
+	else if (S_ISDIR(info.st_mode))
+		return ("d");
+	else if (S_ISLNK(info.st_mode))
+		return ("l");
+	else if (S_ISSOCK(info.st_mode))
+		return ("s");
+	else if (S_ISFIFO(info.st_mode))
+		return ("p");
+	else
+		return ("-");
 }
 
 filelist *sort_by_time(filelist *files, char *path)
