@@ -6,7 +6,7 @@
 /*   By: ed <ed@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 20:19:36 by ed                #+#    #+#             */
-/*   Updated: 2019/09/03 19:06:45 by ed               ###   ########.fr       */
+/*   Updated: 2019/09/04 14:09:31 by ed               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,22 +25,22 @@ void ft_ls(inputs *input, char *path)
 	filelist *files = build_file_list();
 	nested_dir *dir_list = build_dir_list();
 	struct dirent *dp;
-	DIR *dir = opendir(path); // Open the directory - dir contains a pointer to manage the dir
+	DIR *dir = opendir(path);
 	if (dir == NULL)
 		ft_putstr("this failed");
-	while ((dp = readdir(dir))) // if dp is null, there's no more content to read
+	while ((dp = readdir(dir)))
 	{
-		if (dp->d_type == 4) // if the filetype is a directory
+		if (dp->d_type == 4)
 			add_new_dir(dir_list, dp->d_name);
-		add_new_file(files, dp->d_name); // used to be printf=>d_name
+		add_new_file(files, dp->d_name);
 	}
 	print_file_list(files, input, path);
-	while (input->flag_R && dir_list->next && input->filelist->filename == NULL) // handling -R with recursive ft_ls calls
+	while (input->flag_R && dir_list->next && input->filelist->filename == NULL)
 	{
 		ft_ls(input, build_nested_dirname(dir_list->dirname, path));
 		dir_list = dir_list->next;
 	}
-	closedir(dir); // close the dir
+	closedir(dir);
 }
 
 void print_file_list(filelist *files, inputs *input, char *path)
